@@ -78,13 +78,28 @@ void event_add(int sock_fd,string message){
 }
 
 void event_remove(int sock_fd,string message){
-
+    cout << "In event_remove" << endl;
     vector<string> str = splitstr(message);
     
     string filename = "user_"+str[0];
     ifstream fpi;
 
     fpi.open(filename.c_str());
+
+    if(!fpi){
+       
+        string to_send = "No event added for username: "+str[0];
+        if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
+		    perror("send");
+    
+        //recv killer : 0001000
+        to_send = "0001000";
+        if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
+		    perror("send");
+
+        return;
+
+    }
 
     string to_send = "";
     char buf[MAXDATASIZE];
@@ -93,7 +108,6 @@ void event_remove(int sock_fd,string message){
     
     //fileformat: date stime etime type
     while(fpi.getline(buf,MAXDATASIZE)){
-        
         string line = buf;
         vector<string> fpstr = splitstr(line);
         
@@ -111,8 +125,7 @@ void event_remove(int sock_fd,string message){
    
     //no conflicts
     if(to_send.empty()){
-        to_send = "No entry detected for :  " + str[0] + " " + str[1] + " " + str[2] + " " + str[3] + " " + str[4] ;
-        
+        to_send = "No entry detected for :  " + str[0] + " " + str[1]+" "+str[2];
         if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
 		    perror("send");
     }
@@ -132,13 +145,77 @@ void event_remove(int sock_fd,string message){
 }
 
 void event_update(int sock_fd,string message){
+    
+    event_remove(sock_fd,message);
+    event_add(sock_fd,message);
 
     return;
 }
 
 void event_get(int sock_fd,string message){
 
+     vector<string> str = splitstr(message);
+    
+    string filename = "user_"+str[0];
+    ifstream fpi;
+
+    fpi.open(filename.c_str());
+
+    if(!fpi){
+       
+        string to_send = "No event added for username: "+str[0];
+        if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
+		    perror("send");
+    
+        //recv killer : 0001000
+        to_send = "0001000";
+        if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
+		    perror("send");
+
+        return;
+
+    }
+
+    string to_send = "";
+    char buf[MAXDATASIZE];
+    
+    
+    //fileformat: date stime etime type
+    while(fpi.getline(buf,MAXDATASIZE)){
+        
+        string line = buf;
+        vector<string> fpstr = splitstr(line);
+        
+        
+        if(str.size() == 2 && str[1] == fpstr[0] ){
+            to_send = "Event:  " + fpstr[0] + " " + fpstr[1] + " " + fpstr[2] + " " + fpstr[3];
+            
+            if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
+		        perror("send");
+        }
+        else if(str.size() == 3 && str[1] == fpstr[0] && str[2] == fpstr[1] ){
+            to_send = "Event:  " + fpstr[0] + " " + fpstr[1] + " " + fpstr[2] + " " + fpstr[3];
+            
+            if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
+		        perror("send");
+        }
+    } 
+   
+    //no conflicts
+    if(to_send.empty()){
+        to_send = "No entry/ies detected" ;
+        
+        if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
+		    perror("send");
+    }
+    
+    //recv killer : 0001000
+    to_send = "0001000";
+    if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
+		perror("send");
+
     return;
+
 }
 
 

@@ -175,18 +175,26 @@ int main(int argc, char *argv[])
     
         string line;
         char buf[MAXDATASIZE]; 
-	    do{
+        if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
+	        perror("1.recv");
+	        exit(1);
+        }
+        buf[numbytes]='\0';
+	    line = buf;
+
+        //recv killer
+        while(line != "0001000"){
+            //cout << "hi";
+            cout <<line<<endl;
             if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
-	            perror("recv");
+	            perror("2.recv");
 	            exit(1);
             }
 
             buf[numbytes]='\0';
-//            printf("%s\n",buf);
             line = buf;
-            cout << line;
+//            printf("%s\n",buf);
         }
-        while(line != "0001000"); //recv killer
     }
     
     else if(FUNCTION == "update"){
@@ -214,7 +222,37 @@ int main(int argc, char *argv[])
         if (send(sockfd,string_to_send.c_str(), MAXDATASIZE, 0) == -1)
 		    		perror("send");
    
-    }
+        //recv from event_update
+        string line;
+        char buf[MAXDATASIZE]; 
+        if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
+	        perror("recv");
+	        exit(1);
+        }
+        buf[numbytes]='\0';
+	    
+        //recv killer
+        while(line != "0001000"){
+            line = buf;
+            cout << line;
+            if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
+	            perror("recv");
+	            exit(1);
+            }
+
+            buf[numbytes]='\0';
+//            printf("%s\n",buf);
+        }
+        
+        //recv from event_add()
+        if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
+	        perror("recv");
+	        exit(1);
+	    }
+        buf[numbytes]='\0';
+        printf("%s\n",buf);
+
+   }
     
     else if(FUNCTION == "get"){
         
@@ -246,6 +284,29 @@ int main(int argc, char *argv[])
 
         if (send(sockfd,string_to_send.c_str(), MAXDATASIZE, 0) == -1)
 		    		perror("send");
+    
+        //recv from event_get
+        string line;
+        char buf[MAXDATASIZE]; 
+        if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
+	        perror("recv");
+	        exit(1);
+        }
+        buf[numbytes]='\0';
+	    
+        //recv killer
+        while(line != "0001000"){
+            line = buf;
+            cout << line;
+            if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
+	            perror("recv");
+	            exit(1);
+            }
+
+            buf[numbytes]='\0';
+//            printf("%s\n",buf);
+        }
+ 
     }
     
     else{
