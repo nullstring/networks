@@ -57,10 +57,10 @@ void event_add(int sock_fd,string message){
     char buf[MAXDATASIZE];
     //fileformat: date stime etime type
     while(fpi.getline(buf,MAXDATASIZE)){
-        
         string line = buf;
+        //cout << "hello : " << line <<endl;        
         vector<string> fpstr = splitstr(line);
-        cout << "server while"<<endl; 
+        //cout << "server while"<<endl; 
         //check for conflicts
         if(str[1] == fpstr[0] && ( str[2] < fpstr[2] && str[3] > fpstr[1]))
             to_send = "Conflict detected:  " + fpstr[0] + " " + fpstr[1] + " " + fpstr[2] + " " + fpstr[3];
@@ -72,6 +72,7 @@ void event_add(int sock_fd,string message){
         to_send = "Event added :  " + str[0] + " " + str[1] + " " + str[2] + " " + str[3] + " " + str[4] ;
     }
 
+    //cout << to_send <<endl;
     if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
 		perror("send");
 
@@ -95,14 +96,7 @@ void event_remove(int sock_fd,string message){
         if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
 		    perror("send");
 
-        /*
-        //recv killer : 0001000
-        to_send = "0001000";
-        if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
-		    perror("send");
-
-        */
-        return;
+       return;
 
     }
 
@@ -123,7 +117,6 @@ void event_remove(int sock_fd,string message){
             if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
 		        perror("send");
     
-            break;
         }
         else{
             file_buf.push_back(line);
@@ -137,19 +130,13 @@ void event_remove(int sock_fd,string message){
 		    perror("send");
     }
     
+    
     ofstream fpo;
     fpo.open(filename.c_str());
     
     for(int i = 0 ; i<file_buf.size() ;i++) 
     fpo << file_buf[i] <<endl;
 
-    /*
-    //recv killer : 0001000
-    to_send = "0001000";
-    if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
-		perror("send");
-
-    */
     fpo.close();
     fpi.close();
     return;
@@ -157,9 +144,96 @@ void event_remove(int sock_fd,string message){
 
 void event_update(int sock_fd,string message){
     
-    event_remove(sock_fd,message);
-    event_add(sock_fd,message);
+    //event_remove(sock_fd,message);
+    //event_add(sock_fd,message);
+    cout<<"In event_update"<<endl;
+    vector<string> str = splitstr(message);
+    
+    string filename = "user_"+str[0];
+    ifstream fpi;
 
+    fpi.open(filename.c_str());
+
+    if(!fpi){
+       
+        string to_send = "No event added for username: "+str[0];
+        if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
+		    perror("send");
+
+       return;
+
+    }
+
+    string to_send = "";
+    char buf[MAXDATASIZE];
+ 
+    while(fpi.getline(buf,MAXDATASIZE)){
+        
+        string line = buf;
+        vector<string> fpstr = splitstr(line);
+   
+        //check for conflicts
+        if(str[2] != fpstr[1] && str[1] == fpstr[0] && ( str[2] < fpstr[2] && str[3] > fpstr[1])){
+            to_send = "Conflict detected:  " + fpstr[0] + " " + fpstr[1] + " " + fpstr[2] + " " + fpstr[3];
+            if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
+		        perror("send");
+    
+            break;
+        }
+    }   
+    
+    fpi.close();
+    if(to_send.empty()){
+       
+
+        fpi.open(filename.c_str());
+        vector<string> file_buf;
+    
+        //fileformat: date stime etime type
+        while(fpi.getline(buf,MAXDATASIZE)){
+            //cout<<"server while"<<endl; 
+            string line = buf;
+            vector<string> fpstr = splitstr(line);
+        
+            //check for conflicts
+            if(str[1] == fpstr[0] && str[2] == fpstr[1]){
+                if(str[3] == fpstr[2] && str[4] == fpstr[3]){
+                    file_buf.push_back(line);
+                    continue;
+                }
+                to_send = "Entry from:  " + fpstr[0] + " " + fpstr[1] + " " + fpstr[2] + " " + fpstr[3];
+            
+                if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
+		        perror("send");
+            }
+            else{
+                file_buf.push_back(line);
+            }
+        } 
+   
+        //no conflicts
+        if(to_send.empty()){
+            to_send = "No entry detected for :  " + str[0] + " " + str[1]+" "+str[2]+" "+str[3]+" "+str[4];
+            if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
+		        perror("send");
+        }
+        else{
+            
+            file_buf.push_back(str[1] + " " + str[2] + " " + str[3] + " " + str[4] + "\n");
+            to_send = "Updated to :  " + str[0] + " " + str[1] + " " + str[2] + " " + str[3] + " " + str[4] ;
+            if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
+		        perror("send");
+        
+        }
+        ofstream fpo;
+        fpo.open(filename.c_str());
+    
+        for(int i = 0 ; i<file_buf.size() ;i++) 
+        fpo << file_buf[i] <<endl;
+
+        fpo.close();
+        fpi.close();
+    }
     return;
 }
 
@@ -178,13 +252,6 @@ void event_get(int sock_fd,string message){
         if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
 		    perror("send");
 
-        /*
-        //recv killer : 0001000
-        to_send = "0001000";
-        if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
-		    perror("send");
-
-        */
         return;
 
     }
@@ -226,12 +293,6 @@ void event_get(int sock_fd,string message){
 		    perror("send");
     }
    
-    /*
-    //recv killer : 0001000
-    to_send = "0001000";
-    if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
-	perror("send");
-    */
     fpi.close();
     return;
 

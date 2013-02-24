@@ -49,6 +49,7 @@ void checkDate(string date){
 
     if(month > 12 || day > 31 || (day==31 && (month == 2 || month==4 || month == 6 || month == 9 || month == 11)) || (month == 2 && year%4 != 0 && day == 29)){
         cout<< date <<" : Date failed semantic checks" <<endl;
+        cout << "Operation not performed : please retry" <<endl;
         exit(1);
     }
     
@@ -60,10 +61,12 @@ void checkTime(string str_time){
     //int itime = stoi(time);
     if(!is_digits(str_time) || str_time.length() != 4){
         cout<< str_time<<" : should be 4 valid digits" <<endl;
+        cout << "Operation not performed : please retry" <<endl;
         exit(1); 
     }
     else if(str_time>"2400"){
         cout<< str_time <<" : 0000 < time < 2400" <<endl;
+        cout << "Operation not performed : please retry" <<endl;
         exit(1);
     }
     
@@ -74,6 +77,7 @@ void checkMutualTime(string stime, string etime){
 
     if(stime>=etime){
         cout<< "Time Constraints : start time < end time" <<endl;
+        cout << "Operation not performed : please retry" <<endl;
         exit(1);
     }
 
