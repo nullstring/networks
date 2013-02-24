@@ -43,6 +43,7 @@ vector <string> splitstr(string message){
 //name date stime etime type
 void event_add(int sock_fd,string message){
 
+    cout<<"In event_add"<<endl;
     vector<string> str = splitstr(message);
     
     string filename = "user_"+str[0];
@@ -74,6 +75,8 @@ void event_add(int sock_fd,string message){
     if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
 		perror("send");
 
+    fpo.close();
+    fpi.close();
     return;
 }
 
@@ -91,12 +94,14 @@ void event_remove(int sock_fd,string message){
         string to_send = "No event added for username: "+str[0];
         if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
 		    perror("send");
-    
+
+        /*
         //recv killer : 0001000
         to_send = "0001000";
         if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
 		    perror("send");
 
+        */
         return;
 
     }
@@ -117,6 +122,8 @@ void event_remove(int sock_fd,string message){
             
             if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
 		        perror("send");
+    
+            break;
         }
         else{
             file_buf.push_back(line);
@@ -136,11 +143,15 @@ void event_remove(int sock_fd,string message){
     for(int i = 0 ; i<file_buf.size() ;i++) 
     fpo << file_buf[i] <<endl;
 
+    /*
     //recv killer : 0001000
     to_send = "0001000";
     if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
 		perror("send");
 
+    */
+    fpo.close();
+    fpi.close();
     return;
 }
 
@@ -166,12 +177,14 @@ void event_get(int sock_fd,string message){
         string to_send = "No event added for username: "+str[0];
         if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
 		    perror("send");
-    
+
+        /*
         //recv killer : 0001000
         to_send = "0001000";
         if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
 		    perror("send");
 
+        */
         return;
 
     }
@@ -192,12 +205,16 @@ void event_get(int sock_fd,string message){
             
             if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
 		        perror("send");
+        
+            break;
         }
         else if(str.size() == 3 && str[1] == fpstr[0] && str[2] == fpstr[1] ){
             to_send = "Event:  " + fpstr[0] + " " + fpstr[1] + " " + fpstr[2] + " " + fpstr[3];
             
             if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
 		        perror("send");
+        
+            break;
         }
     } 
    
@@ -208,12 +225,14 @@ void event_get(int sock_fd,string message){
         if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
 		    perror("send");
     }
-    
+   
+    /*
     //recv killer : 0001000
     to_send = "0001000";
     if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
-		perror("send");
-
+	perror("send");
+    */
+    fpi.close();
     return;
 
 }
@@ -231,19 +250,15 @@ void preprocessingCall(int sock_fd, string message){
    
     switch(function_code.c_str()[0]){
         case '1':
-            printf("in add\n");
             event_add(sock_fd,rest);
             break;
         case '2':
-            printf("in remove\n");
             event_remove(sock_fd,rest);
             break;
         case '3':
-            printf("in update\n");
             event_update(sock_fd,rest);
             break;
         case '4':
-            printf("in get\n");
             event_get(sock_fd,rest);
             break;
         default:

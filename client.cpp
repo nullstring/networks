@@ -14,25 +14,68 @@
 #include <string>
 #include <arpa/inet.h>
 #include <iostream>
+#include <ctype.h>
+#include <algorithm>
 
 using namespace std;
 //#define PORT "3490" // the port client will be connecting to 
 
 #define MAXDATASIZE 200 // max number of bytes we can get at once 
 
+bool is_digits(string str){
+    //c11 not working in mac - gcc version problems
+    //return std::all_of(s.begin(),s.end(),::isdigit);
+    return str.find_first_not_of("0123456789") == std::string::npos;
+}
 
 //Various Semantic check functions
 void checkDate(string date){
 
+    if(!is_digits(date) || date.length() != 6){
+        cout<< date <<" : should be 6 valid digits" <<endl;
+        cout << "Operation not performed : please retry" <<endl;
+        exit(1); 
+    }
+   
+    int month = atoi(date.substr(0,2).c_str());
+    int day = atoi(date.substr(2,2).c_str());
+    int year = atoi(date.substr(4,2).c_str());
+    /*
+    //c11 not working in mac - gcc version problems
+    int month = stoi(date.substr(0,2),10);
+    int day = stoi(date.substr(2,2),10);
+    int year = stoi(date.substr(4,2),10);
+    */
+
+    if(month > 12 || day > 31 || (day==31 && (month == 2 || month==4 || month == 6 || month == 9 || month == 11)) || (month == 2 && year%4 != 0 && day == 29)){
+        cout<< date <<" : Date failed semantic checks" <<endl;
+        exit(1);
+    }
+    
     return;
 }
 
-void checkTime(string time){
+void checkTime(string str_time){
 
+    //int itime = stoi(time);
+    if(!is_digits(str_time) || str_time.length() != 4){
+        cout<< str_time<<" : should be 4 valid digits" <<endl;
+        exit(1); 
+    }
+    else if(str_time>"2400"){
+        cout<< str_time <<" : 0000 < time < 2400" <<endl;
+        exit(1);
+    }
+    
     return;
 }
 
 void checkMutualTime(string stime, string etime){
+
+    if(stime>=etime){
+        cout<< "Time Constraints : start time < end time" <<endl;
+        exit(1);
+    }
 
     return;
 }
@@ -181,7 +224,9 @@ int main(int argc, char *argv[])
         }
         buf[numbytes]='\0';
 	    line = buf;
+        cout <<line<<endl;
 
+        /*
         //recv killer
         while(line != "0001000"){
             //cout << "hi";
@@ -195,6 +240,7 @@ int main(int argc, char *argv[])
             line = buf;
 //            printf("%s\n",buf);
         }
+        */
     }
     
     else if(FUNCTION == "update"){
@@ -230,7 +276,10 @@ int main(int argc, char *argv[])
 	        exit(1);
         }
         buf[numbytes]='\0';
-	    
+	    line = buf;
+        cout << line<<endl;
+       
+        /*
         //recv killer
         while(line != "0001000"){
             line = buf;
@@ -244,6 +293,7 @@ int main(int argc, char *argv[])
 //            printf("%s\n",buf);
         }
         
+        */
         //recv from event_add()
         if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
 	        perror("recv");
@@ -293,7 +343,10 @@ int main(int argc, char *argv[])
 	        exit(1);
         }
         buf[numbytes]='\0';
+        line = buf;
+        cout << line<<endl;
 	    
+        /*
         //recv killer
         while(line != "0001000"){
             line = buf;
@@ -306,7 +359,7 @@ int main(int argc, char *argv[])
             buf[numbytes]='\0';
 //            printf("%s\n",buf);
         }
- 
+        */
     }
     
     else{
