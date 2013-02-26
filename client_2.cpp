@@ -16,17 +16,61 @@
 #include <iostream>
 #include <ctype.h>
 #include <algorithm>
+#include <vector>
+#include <sstream>
 
 using namespace std;
 //#define PORT "3490" // the port client will be connecting to 
 
 #define MAXDATASIZE 200 // max number of bytes we can get at once 
+#define MAXALL 4000
+
+//splitting
+std::vector<string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
+        std::stringstream ss(s);
+        std::string item;
+        while(std::getline(ss, item, delim)) {
+            elems.push_back(item);
+        }
+        return elems;
+}
+
+
+std::vector<std::string> split(const std::string &s, char delim) {
+        std::vector<std::string> elems;
+        return split(s, delim, elems);
+}
+
+//trimming
+std::string trim(const std::string& str,
+                 const std::string& whitespace = " \t")
+{
+    const auto int strBegin = str.find_first_not_of(whitespace);
+    if (strBegin == std::string::npos)
+        return ""; // no content
+
+    const auto int strEnd = str.find_last_not_of(whitespace);
+    const auto int strRange = strEnd - strBegin + 1;
+
+    return str.substr(strBegin, strRange);
+}
 
 bool is_digits(string str){
     //c11 not working in mac - gcc version problems
     //return std::all_of(s.begin(),s.end(),::isdigit);
     return str.find_first_not_of("0123456789") == std::string::npos;
 }
+
+
+size_t Recv(int remoteSocket,char* buffer, size_t size) {
+        size_t total = 0, n = 0;
+        while((n = ::recv(remoteSocket, buffer+total, size-total-1, 0)) > 0) {
+            total += n;
+        }
+        buffer[total] = 0;
+        return total;
+}
+
 
 //Various Semantic check functions
 void checkDate(string date){
@@ -180,28 +224,20 @@ int main(int argc, char *argv[])
     
         //recv from event_get
         string line;
-        char buf[MAXDATASIZE]; 
+        char buf[MAXALL]; 
         if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
 	        perror("recv");
 	        exit(1);
         }
         buf[numbytes]='\0';
         line = buf;
-        cout << "Number of Entries for "<<USERNAME<<" : "<<line<<endl;
+        line = trim(line," /");
+        vector<string> getall_data = split(line,'/');
+        cout << "Number of Entries for "<<USERNAME<<" : "<<getall_data.size()<<endl;
 
-        int entry_count = atoi(line.c_str());
-        
-        for(int i=0 ; i<entry_count ; i++){
-        
+        for(int i=0 ; i<getall_data.size() ; i++){
             sleep(2);
-            if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
-	            perror("recv");
-	            exit(1);
-            }
-            
-            buf[numbytes]='\0';
-            line = buf;
-            cout<<line<<endl; 
+            cout<<getall_data[i]<<endl;    
         }
     
     }
@@ -277,22 +313,6 @@ int main(int argc, char *argv[])
         buf[numbytes]='\0';
 	    line = buf;
         cout <<line<<endl;
-
-        /*
-        //recv killer
-        while(line != "0001000"){
-            //cout << "hi";
-            cout <<line<<endl;
-            if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
-	            perror("2.recv");
-	            exit(1);
-            }
-
-            buf[numbytes]='\0';
-            line = buf;
-//            printf("%s\n",buf);
-        }
-        */
     }
     
     else if(FUNCTION == "update"){
@@ -333,22 +353,7 @@ int main(int argc, char *argv[])
         buf[numbytes]='\0';
 	    line = buf;
         cout << line<<endl;
-       
-        /*
-        //recv killer
-        while(line != "0001000"){
-            line = buf;
-            cout << line;
-            if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
-	            perror("recv");
-	            exit(1);
-            }
 
-            buf[numbytes]='\0';
-//            printf("%s\n",buf);
-        }
-        
-        */
         //recv from event_add()
         if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
 	        perror("recv");
@@ -404,20 +409,7 @@ int main(int argc, char *argv[])
         line = buf;
         cout << line<<endl;
 	    
-        /*
-        //recv killer
-        while(line != "0001000"){
-            line = buf;
-            cout << line;
-            if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
-	            perror("recv");
-	            exit(1);
-            }
-
-            buf[numbytes]='\0';
-//            printf("%s\n",buf);
-        }
-        */
+       
     }
     
     else{

@@ -42,7 +42,7 @@ vector <string> splitstr(string message){
 
 void event_getall(int sock_fd,string message){
 
-     vector<string> str = splitstr(message);
+    vector<string> str = splitstr(message);
     
     string filename = "user_"+str[0];
     ifstream fpi;
@@ -61,31 +61,17 @@ void event_getall(int sock_fd,string message){
 
     string to_send = "";
     char buf[MAXDATASIZE];
-    
+    string getall_data; 
     string line;
-    vector<string> file_buf;
-    //fileformat: date stime etime type
+   
     while(fpi.getline(buf,MAXDATASIZE)){
         line = buf;
-        file_buf.push_back(line);     
+        getall_data = getall_data + "/" + line; 
     } 
    
-    int entry_count = file_buf.size();
     
-    //TODO: rightnow supports only 0-9 , see how to convert int to char*
-    char count[0];
-    *count = char(entry_count+48);
-    
-    if (send(sock_fd,count,MAXDATASIZE, 0) == -1)
+    if (send(sock_fd,getall_data.c_str(),MAXDATASIZE, 0) == -1)
 	perror("send");
-    int send_bytes=0;
-    for(int i=0;i<entry_count;i++){
-        sleep(2);
-        if (send_bytes=send(sock_fd,file_buf[i].c_str(),MAXDATASIZE, 0) == -1)
-		perror("send");
-        cout<<send_bytes<<endl;
-    }
-    //no conflicts
        
     fpi.close();
     return;
