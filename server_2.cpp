@@ -255,7 +255,7 @@ void event_update(int sock_fd,string message){
    
         //check for conflicts
         if(str[2] != fpstr[1] && str[1] == fpstr[0] && ( str[2] < fpstr[2] && str[3] > fpstr[1])){
-            to_send = "Conflict detected:  " + fpstr[0] + " " + fpstr[1] + " " + fpstr[2] + " " + fpstr[3];
+            to_send = "Updation would create conflict with :  " + fpstr[0] + " " + fpstr[1] + " " + fpstr[2] + " " + fpstr[3]+"\n Aborting !!";
             if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
 		        perror("send");
     
@@ -294,7 +294,7 @@ void event_update(int sock_fd,string message){
    
         //no conflicts
         if(to_send.empty()){
-            to_send = "No entry detected for :  " + str[0] + " " + str[1]+" "+str[2]+" "+str[3]+" "+str[4];
+            to_send = "No entry to update :  " + str[0] + " " + str[1]+" "+str[2]+" "+str[3]+" "+str[4];
             if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
 		        perror("send");
         }
