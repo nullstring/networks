@@ -108,12 +108,21 @@ void checkTime(string str_time){
         cout << "Operation not performed : please retry" <<endl;
         exit(1); 
     }
-    else if(str_time>"2400"){
-        cout<< str_time <<" : 0000 < time < 2400" <<endl;
+    
+    string hour = str_time.substr(0,2);
+    string min = str_time.substr(2,2);
+    
+    if(hour>"24"){
+        cout<< hour <<" : 00 <= hour <= 24" <<endl;
         cout << "Operation not performed : please retry" <<endl;
         exit(1);
     }
-    
+    else if(min>"59"){
+        cout<< min <<" : 00 <= min < 60" <<endl;
+        cout << "Operation not performed : please retry" <<endl;
+        exit(1);
+    }
+
     return;
 }
 
@@ -225,7 +234,7 @@ int main(int argc, char *argv[])
         //recv from event_get
         string line;
         char buf[MAXALL]; 
-        if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
+        if ((numbytes = recv(sockfd, buf, MAXALL-1, 0)) == -1) {
 	        perror("recv");
 	        exit(1);
         }
@@ -400,16 +409,28 @@ int main(int argc, char *argv[])
     
         //recv from event_get
         string line;
-        char buf[MAXDATASIZE]; 
-        if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
+        char buf[MAXALL]; 
+        if ((numbytes = recv(sockfd, buf, MAXALL-1, 0)) == -1) {
 	        perror("recv");
 	        exit(1);
         }
         buf[numbytes]='\0';
         line = buf;
-        cout << line<<endl;
-	    
-       
+        
+        if(argc == arg_size2){
+            cout << line<<endl;
+        }
+        else if(argc == arg_size1){
+
+            line = trim(line," /");
+            vector<string> getall_data = split(line,'/');
+            cout << "Number of Entries for "<<USERNAME<<" : "<<getall_data.size()<<endl;
+
+            for(int i=0 ; i<getall_data.size() ; i++){
+                cout<<getall_data[i]<<endl;    
+            }
+        }
+
     }
     
     else{

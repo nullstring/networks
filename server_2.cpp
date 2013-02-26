@@ -22,6 +22,7 @@
 
 #define PORT "3490"  // the port users will be connecting to
 #define MAXDATASIZE 200
+#define MAXALL 4000
 
 #define BACKLOG 10	 // how many pending connections queue will hold
 
@@ -38,7 +39,45 @@ vector <string> splitstr(string message){
     return str;
 }
 
+
+int date_comp(string d1,string d2){
+    
+    if(d1==d2)return 0;
+
+    string d1_mon = d1.substr(0,2);
+    string d1_day = d1.substr(2,2);
+    string d1_year = d1.substr(4);
+    
+    string d2_mon = d2.substr(0,2);
+    string d2_day = d2.substr(2,2);
+    string d2_year = d2.substr(4);
+
+    if(d2_year > d1_year || (d2_year == d1_year && d2_mon > d1_mon) || (d2_year == d1_year && d2_mon == d1_mon && d2_day > d1_day))return 1;
+    
+    return -1;
+}
+
 //my code
+void dir_add(string filename){
+
+    string dirname = "userdir";
+    ofstream fpo;
+    ifstream fpi;
+
+    fpo.open(dirname.c_str(), ofstream::app); // ofstream creates new file if not there, ordering of opening the file is important , dont change
+    fpi.open(dirname.c_str());
+
+    bool file_exists = false;
+    char buf[MAXDATASIZE];
+
+    while(fpi.getline(buf,MAXDATASIZE)){
+        string dir_filename = buf;
+        if(filename == dir_filename)file_exists = true; 
+    }
+
+    if(!file_exists)fpo<<filename<<endl;
+    return;
+}
 
 void event_getall(int sock_fd,string message){
 
@@ -79,6 +118,7 @@ void event_getall(int sock_fd,string message){
 }
 
 
+
 //name date stime etime type
 void event_add(int sock_fd,string message){
 
@@ -86,6 +126,8 @@ void event_add(int sock_fd,string message){
     vector<string> str = splitstr(message);
     
     string filename = "user_"+str[0];
+    
+    dir_add(filename);
     ofstream fpo;
     ifstream fpi;
 
@@ -278,7 +320,7 @@ void event_update(int sock_fd,string message){
 
 void event_get(int sock_fd,string message){
 
-     vector<string> str = splitstr(message);
+    vector<string> str = splitstr(message);
     
     string filename = "user_"+str[0];
     ifstream fpi;
@@ -298,7 +340,6 @@ void event_get(int sock_fd,string message){
     string to_send = "";
     char buf[MAXDATASIZE];
     
-    
     //fileformat: date stime etime type
     while(fpi.getline(buf,MAXDATASIZE)){
         
@@ -307,43 +348,124 @@ void event_get(int sock_fd,string message){
         
         
         if(str.size() == 2 && str[1] == fpstr[0] ){
+    
+            to_send = to_send + "/" + line; 
+            
+            /*
             to_send = "Event:  " + fpstr[0] + " " + fpstr[1] + " " + fpstr[2] + " " + fpstr[3];
             
             if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
 		        perror("send");
         
             break;
+            */
         }
         else if(str.size() == 3 && str[1] == fpstr[0] && str[2] == fpstr[1] ){
+           
+            to_send = line;
+            /*
             to_send = "Event:  " + fpstr[0] + " " + fpstr[1] + " " + fpstr[2] + " " + fpstr[3];
             
             if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
 		        perror("send");
-        
+            */
             break;
         }
     } 
    
     //no conflicts
     if(to_send.empty()){
-        to_send = "No entry/ies detected" ;
+        to_send = "No entry detected" ;
         
         if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
 		    perror("send");
     }
-   
+    else{
+        if (send(sock_fd,to_send.c_str(),MAXALL, 0) == -1)
+		    perror("send");
+    }
+
     fpi.close();
     return;
 
 }
 
+void filedir_refresh(int sock_fd){
+
+    time_t t = time(0);   // get time now
+    struct tm * now = localtime( & t );
+    int year = now->tm_year - 100;
+    int mon = now->tm_mon + 1;
+    int day = now->tm_mday;
+    int hour = now->tm_hour;
+    int min = now->tm_min;
+
+    char date_temp[10];
+    sprintf(date_temp,"%2d%2d%2d",mon,day,year);
+    string dir_date = date_temp;
+
+    char time_temp[10];
+    sprintf(time_temp,"%2d%2d",hour,min);
+    string dir_time = time_temp;
+
+    string filename = "userdir";
+    ofstream fpo;
+    ifstream fpi;
+
+    fpo.open(filename.c_str(), ofstream::app); // ofstream creates new file if not there, ordering of opening the file is important , dont change
+    fpi.open(filename.c_str());
+
+    char buf[MAXDATASIZE];
+    string total;
+    while(fpi.getline(buf,MAXDATASIZE)){
+     
+        string dir_filename = buf;
+        ifstream fpi_file;
+        fpi_file.open(dir_filename.c_str());
+       
+        char buffer[MAXDATASIZE];
+        vector<string> file_buf;
+    
+        //fileformat: date stime etime type
+        while(fpi_file.getline(buffer,MAXDATASIZE)){
+            string line = buffer;
+            vector<string> fpstr = splitstr(line);
+       
+            string cur_date = fpstr[0];
+            string cur_endtime = fpstr[2];
+            //check with current time and date
+            if( date_comp(cur_date,dir_date) == 1 || (date_comp(cur_date,dir_date) == 0 && dir_time > cur_endtime)){
+                //total = total + "/" + line; 
+                cout<< "Entry Deprecated : " << line << endl;
+            }
+            else{
+                file_buf.push_back(line);
+            }
+        } 
+   
+        ofstream fpo_file;
+        fpo_file.open(dir_filename.c_str());
+        
+        for(int i = 0 ; i<file_buf.size() ;i++) 
+            fpo_file << file_buf[i] <<endl;
+
+    }
+
+    /*
+    if (send(sock_fd,total.c_str(),MAXALL, 0) == -1)
+	    perror("send");
+    */
+    return;
+}
 
 //preprocessing step
 //1. Parse string
 //2. call appropriate function call
 //name function date stime etime type
 void preprocessingCall(int sock_fd, string message){
-    
+   
+    filedir_refresh(sock_fd);
+
     int token = message.find(" ");
     string function_code = message.substr(0,token);
     string rest = message.substr(token+1);
