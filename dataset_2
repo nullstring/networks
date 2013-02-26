@@ -1,0 +1,6 @@
+./client localhost 9034 mehta add 092313 0800 0900 morning
+./client localhost 9034 mehta add 092313 0900 1000 morning
+./client localhost 9034 mehta add 092313 1000 1100 morning
+./client localhost 9034 mehta add 092313 1100 1200 morning
+./client localhost 9034 mehta add 092313 1200 1300 morning
+./client localhost 9034 mehta add 092313 1500 1600 morning
