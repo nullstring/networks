@@ -67,10 +67,18 @@ Comments:
             0. Check for events that has already happened for all_users and remove them.
             1. Call appropriate function call (ex. event_add() for add)
             2. Get the args, make meaning from it.
-            3. Perform appropriate actions.
+            3. Perform appropriate actions on to the corresponding files.
             4. Send back response.
 
     3. Multiprocessing (Not multi-threading) is used in the corresponding server using fork() system call. 
+
+    4. Files are used for storing the data, separate for every user.
+        Ex.
+            For user named 'harsh' -> filename: 'user_harsh' in server's folder
+
+        There is also a 'userdir' ( User Directory File) which keeps track of user files.
+
+    5. Semaphores (Reader-Writer) are not implemented and thus its ramifications would follow.
 
 
 - Thank You !! 
