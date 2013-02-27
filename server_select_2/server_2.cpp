@@ -350,24 +350,10 @@ void event_get(int sock_fd,string message){
     
             to_send = to_send + "/" + line; 
             
-            /*
-            to_send = "Event:  " + fpstr[0] + " " + fpstr[1] + " " + fpstr[2] + " " + fpstr[3];
-            
-            if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
-		        perror("send");
-        
-            break;
-            */
         }
         else if(str.size() == 3 && str[1] == fpstr[0] && str[2] == fpstr[1] ){
            
             to_send = line;
-            /*
-            to_send = "Event:  " + fpstr[0] + " " + fpstr[1] + " " + fpstr[2] + " " + fpstr[3];
-            
-            if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
-		        perror("send");
-            */
             break;
         }
     } 
@@ -450,10 +436,6 @@ void filedir_refresh(int sock_fd){
 
     }
 
-    /*
-    if (send(sock_fd,total.c_str(),MAXALL, 0) == -1)
-	    perror("send");
-    */
     return;
 }
 
@@ -622,10 +604,11 @@ int main(void)
                         FD_CLR(i, &master); // remove from master set
                     } else {
                         
+                        //main handling starts here
                         buf[nbytes]='\0';
                         string message(buf);
                         printf("server: received '%s'\n",buf);
-                        preprocessingCall(i,message);
+                        preprocessingCall(i,message); // processing of the message
                     
                     }
                 } // END handle data from client

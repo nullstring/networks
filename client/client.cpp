@@ -23,7 +23,7 @@ using namespace std;
 //#define PORT "3490" // the port client will be connecting to 
 
 #define MAXDATASIZE 200 // max number of bytes we can get at once 
-#define MAXALL 4000
+#define MAXALL 4000 // max number for getall type functions
 
 //splitting
 std::vector<string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
@@ -198,13 +198,8 @@ int main(int argc, char *argv[])
 	printf("client: connecting to %s\n", s);
 
 	freeaddrinfo(servinfo); // all done with this structure
-    
 
-
-
-
-    //my code
-    //
+    //From Here the string parsing and communication with server starts
     //1. Get input from user
     //2. parse function call
     //3. check & concatenate
@@ -225,7 +220,6 @@ int main(int argc, char *argv[])
         
         string FUNCTION_CODE = "0";
         
-        // TO: Take care of extra spaces at behind
         string string_to_send =  FUNCTION_CODE+ " " + USERNAME;  
 
         if (send(sockfd,string_to_send.c_str(), MAXDATASIZE, 0) == -1)
@@ -438,20 +432,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    //my code ends
-
-    /*
-	if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
-	    perror("recv");
-	    exit(1);
-	}
-    
-
-	buf[numbytes] = '\0';
-
-    printf("client: received '%s'\n",buf);
-    */
-
+   
 	close(sockfd);
 
 	return 0;

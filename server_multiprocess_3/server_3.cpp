@@ -40,6 +40,7 @@ vector <string> splitstr(string message){
 }
 
 
+//return 0 if d2=d1 , 1 if d2>d1, otherwise -1
 int date_comp(string d1,string d2){
     
     if(d1==d2)return 0;
@@ -348,27 +349,13 @@ void event_get(int sock_fd,string message){
         
         
         if(str.size() == 2 && str[1] == fpstr[0] ){
-    
+            //start concatenating and send, break and serve on client side    
             to_send = to_send + "/" + line; 
             
-            /*
-            to_send = "Event:  " + fpstr[0] + " " + fpstr[1] + " " + fpstr[2] + " " + fpstr[3];
-            
-            if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
-		        perror("send");
-        
-            break;
-            */
         }
         else if(str.size() == 3 && str[1] == fpstr[0] && str[2] == fpstr[1] ){
            
             to_send = line;
-            /*
-            to_send = "Event:  " + fpstr[0] + " " + fpstr[1] + " " + fpstr[2] + " " + fpstr[3];
-            
-            if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
-		        perror("send");
-            */
             break;
         }
     } 
@@ -451,11 +438,7 @@ void filedir_refresh(int sock_fd){
 
     }
 
-    /*
-    if (send(sock_fd,total.c_str(),MAXALL, 0) == -1)
-	    perror("send");
-    */
-    return;
+        return;
 }
 
 //preprocessing step
@@ -607,7 +590,6 @@ int main(void)
 
 
 
-            //my code
             //1. Get data
             //2. Get what function to call
             //3. Call the function with remaining string
@@ -629,12 +611,7 @@ int main(void)
 
             
             //my code ends
-            
-           /* 
-            if (send(new_fd, "Hello, world!", 13, 0) == -1)
-				perror("send");
-			*/
-
+           
             close(new_fd);
 			exit(0);
 		}

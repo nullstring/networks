@@ -33,7 +33,6 @@ vector <string> splitstr(string message){
     string s;
     vector <string> str;
     while(ss>>s){
-        //cout<<s<<endl;
         str.push_back(s);
     }
     return str;
@@ -126,8 +125,10 @@ void event_add(int sock_fd,string message){
     vector<string> str = splitstr(message);
     
     string filename = "user_"+str[0];
-    
+   
+    //add new user to userdir
     dir_add(filename);
+    
     ofstream fpo;
     ifstream fpi;
 
@@ -351,24 +352,10 @@ void event_get(int sock_fd,string message){
     
             to_send = to_send + "/" + line; 
             
-            /*
-            to_send = "Event:  " + fpstr[0] + " " + fpstr[1] + " " + fpstr[2] + " " + fpstr[3];
-            
-            if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
-		        perror("send");
-        
-            break;
-            */
         }
         else if(str.size() == 3 && str[1] == fpstr[0] && str[2] == fpstr[1] ){
            
             to_send = line;
-            /*
-            to_send = "Event:  " + fpstr[0] + " " + fpstr[1] + " " + fpstr[2] + " " + fpstr[3];
-            
-            if (send(sock_fd,to_send.c_str(),MAXDATASIZE, 0) == -1)
-		        perror("send");
-            */
             break;
         }
     } 
@@ -451,10 +438,6 @@ void filedir_refresh(int sock_fd){
 
     }
 
-    /*
-    if (send(sock_fd,total.c_str(),MAXALL, 0) == -1)
-	    perror("send");
-    */
     return;
 }
 
@@ -601,15 +584,10 @@ int main(void)
 		get_in_addr((struct sockaddr *)&their_addr),s, sizeof s);
 		printf("server: got connection from %s\n", s);
 
-		//if (!fork()) { // this is the child process
-		//	close(sockfd); // child doesn't need the listener
 
-
-
-            //my code
-            //1. Get data
-            //2. Get what function to call
-            //3. Call the function with remaining string
+        //1. Get data
+        //2. Get what function to call
+        //3. Call the function with remaining string
 
         char buf[MAXDATASIZE];
         int numbytes;
@@ -627,18 +605,7 @@ int main(void)
         preprocessingCall(new_fd,message);
 
 
-            
-            //my code ends
-            
-           /* 
-            if (send(new_fd, "Hello, world!", 13, 0) == -1)
-				perror("send");
-			*/
-
         close(new_fd);
-		//	exit(0);
-		//}
-		//close(new_fd);  // parent doesn't need this
 	}
 
 	return 0;
